@@ -84,7 +84,6 @@ class Router {
                 res.end('Access denied');
                 return;
             }
-
             fs.readFile(staticFilePath, (err, data) => {
                 if (err) {
                     res.statusCode = 404;
@@ -126,6 +125,40 @@ class Router {
     }
 }
 
+
+function wrapHtml_200_Response(fn) {
+    return function (req, res) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html');
+        res.end(fn());
+    };
+}
+
+
+function wrapHtmlPlainText_200_Response(text) {
+    return function (req, res) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html');
+        res.end(text);
+    };
+}
+
+function fileToHtml_200_Response(filePath) {
+    return function (req, res) {
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                res.statusCode = 500;
+                res.end('Error loading favicon');
+                return;
+            }
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/html');
+            res.end(data);
+        });
+        return;
+    };
+}
+
 const router = new Router();
 
-module.exports = {router};
+module.exports = { router, wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response };

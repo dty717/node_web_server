@@ -26,12 +26,13 @@ class Builder {
 
     // Method to process HTML files
     processHtmlFiles() {
-        var changeableHtmlFileList = []
+        const changeableHtmlFileList = []
+        const unchangeableHtmlFileList = [];
         const searchHtmlFiles = (dir) => {
             const files = fs.readdirSync(dir);
             files.forEach((file) => {
                 const filePath = path.join(dir, file);
-                if (fs.statSync(filePath).isDirectory()) {
+                if (fs.statSync(filePath).isDirectory() && !filePath.includes('/user/static')) {
                     // Recursively search subdirectories
                     searchHtmlFiles(filePath);
                 } else if (path.extname(file) === '.html') {
@@ -64,6 +65,8 @@ class Builder {
                     if(result.hasChanged){
                         content = result.content;
                         changeableHtmlFileList.push(filePath)
+                    }else{
+                        unchangeableHtmlFileList.push(filePath)
                     }
                     fs.writeFileSync(filePath, content, 'utf-8');
                 }
@@ -77,6 +80,7 @@ class Builder {
         const newClasses = [];
         const routes = [];
 
+        // Process changeable HTML files
         changeableHtmlFileList.forEach((filePath) => {
             const relativePath = path.relative(path.resolve(this.basePath, "src"), filePath).replace(/\\/g, '/');
             const moduleName = path.basename(filePath, '.html');
@@ -85,22 +89,33 @@ class Builder {
 
             imports.push(`const ${routeName} = require('./${relativePath.replace(/\.html$/, '')}');`);
             newClasses.push(`const ${routeLowerName} = new ${routeName}()`);
-            routes.push(`    routingMap.addRoute("/${routeName}", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
-            routes.push(`    routingMap.addRoute("/${routeName}.html", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
-            routes.push(`    routingMap.addRoute("/${routeName}.js", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${moduleName}", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${moduleName}.html", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${moduleName}.js", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+        });
+
+        // Process unchangeable HTML files
+        unchangeableHtmlFileList.forEach((filePath) => {
+            const absolutePath = filePath.replace(/\\/g, '/');
+            const moduleName = path.basename(filePath, '.html');
+            const routeName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+            const routeLowerName = moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
+
+            if (config.htmlLoadingFromFile) {
+                routes.push(`    routingMap.addRoute("/${moduleName}", fileToHtml_200_Response('${absolutePath}'));`);
+                routes.push(`    routingMap.addRoute("/${moduleName}.html", fileToHtml_200_Response('${absolutePath}'));`);
+            } else {
+                routes.push(`    const ${routeLowerName} = fs.readFileSync('${absolutePath}');`);
+                routes.push(`    routingMap.addRoute("/${moduleName}", wrapHtmlPlainText_200_Response(${routeLowerName}));`);
+                routes.push(`    routingMap.addRoute("/${moduleName}.html", wrapHtmlPlainText_200_Response(${routeLowerName}));`);
+            }
         });
 
         const newRoutingMapContent = `const fs = require('fs');
+const { wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response } = require('../routing/Router');
 ${imports.join('\n')}
 ${newClasses.join('\n')}
 
-function wrapHtml_200_Response(fn) {
-    return function (req, res) {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html');
-        res.end(fn());
-    };
-}
 
 function loadRoutingMap(routingMap) {
 ${routes.join('\n')}
