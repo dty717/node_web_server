@@ -66,7 +66,12 @@ class Builder {
                         content = result.content;
                         changeableHtmlFileList.push(filePath)
                     }else{
-                        unchangeableHtmlFileList.push(filePath)
+                        unchangeableHtmlFileList.push(filePath);
+                        const jsFilePath = filePath.replace(/\.html$/, '.js');
+                        if (fs.existsSync(jsFilePath)) {
+                            fs.unlinkSync(jsFilePath);
+                            console.log(`Deleted JS file: ${jsFilePath}`);
+                        }
                     }
                     fs.writeFileSync(filePath, content, 'utf-8');
                 }

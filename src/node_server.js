@@ -6,7 +6,6 @@ const {router} = require('./routing/Router');
 const config = require('./user/config/config');
 const path = require('path');
 const Builder = require('./building/Builder');
-const { loadRoutingMap } = require('./user/RoutingMapLoad');
 const loadHttpsCertification = require('./certification/httpsLoad.js');
 
 const basePath = path.resolve(__dirname, '../');
@@ -14,6 +13,8 @@ router.setBasePath(basePath)
 
 const builder = new Builder(path.resolve(__dirname));
 builder.building()
+
+const { loadRoutingMap } = require('./user/RoutingMapLoad');
 loadRoutingMap(router.routingMap)
 
 require("./user/main.js")
