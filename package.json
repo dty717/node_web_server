@@ -12,6 +12,7 @@
     "url": "git+https://github.com/dty717/node_web_server.git"
   },
   "dependencies": {
+    "serialport": "^13.0.0",
     "websocket": "^1.0.34"
   },
   "keywords": [],

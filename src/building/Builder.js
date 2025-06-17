@@ -32,7 +32,10 @@ class Builder {
             const files = fs.readdirSync(dir);
             files.forEach((file) => {
                 const filePath = path.join(dir, file);
-                if (fs.statSync(filePath).isDirectory() && !filePath.includes('/user/static')) {
+                if(filePath.includes('\\user\\static')||filePath.includes('/user/static')){
+                    return;
+                }
+                if (fs.statSync(filePath).isDirectory()) {
                     // Recursively search subdirectories
                     searchHtmlFiles(filePath);
                 } else if (path.extname(file) === '.html') {
