@@ -46,9 +46,12 @@ class Router {
         this.routingMap.addRoute(path, handler)
     }
 
-
     setBasePath(basePath) {
         this.basePath = basePath
+    }
+
+    getBasePath() {
+        return this.basePath;
     }
     handleRequest(req, res) {
         const parsedUrl = url.parse(req.url, true); // Parse the URL
@@ -126,6 +129,15 @@ class Router {
 }
 
 
+function wrapJson_200_Response(fn) {
+    return function (req, res) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        const result = (typeof fn === 'function') ? fn() : fn;
+        res.end(JSON.stringify(result));
+    };
+}
+
 function wrapHtml_200_Response(fn) {
     return function (req, res) {
         res.statusCode = 200;
@@ -161,4 +173,4 @@ function fileToHtml_200_Response(filePath) {
 
 const router = new Router();
 
-module.exports = { router, wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response };
+module.exports = { router, wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response, wrapJson_200_Response };

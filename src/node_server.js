@@ -19,6 +19,7 @@ const { loadRoutingMap } = require('./user/RoutingMapLoad');
 loadRoutingMap(router.routingMap)
 
 require("./user/main.js")
+require("./user/controller/mainRouter");
 
 const server = http.createServer((req, res) => {
     // Routing
