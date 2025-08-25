@@ -11,7 +11,7 @@ Ensure you are running the latest version of Raspbian64 OS with all updates. Dow
 ### For version 5.0.5:
 
 ```sh
-tar zxvf raspbian_mongodb_5.0.5.gz
+sudo tar zxvf raspbian_mongodb_5.0.5.gz
 sudo mv mongo* /bin
 sudo chown root:root /bin/mongo*
 sudo chmod 755 /bin/mongo*
@@ -112,8 +112,15 @@ WantedBy=multi-user.target
 You can now start/stop the mongodb service:
 
 ```sh
+ps --no-headers -o comm 1
+# using service base on init system
 sudo service mongodb start
 sudo service mongodb status
+# or using systemd 
+sudo mv /lib/systemd/system/mongodb.service /etc/systemd/system/mongodb.service
+sudo systemctl daemon-reload
+sudo systemctl enable mongodb
+sudo systemctl restart mongodb
 ```
 
 Example output:
@@ -127,6 +134,15 @@ Example output:
         Tasks: 33 (limit: 4164)
      CGroup: /mongodb.service
                      └─1771 /bin/mongod --quiet --config /mongodb.conf
+```
+
+If there is error
+```
+/usr/bin/mongod: error while loading shared libraries: libcrypto.so.1.1: cannot open shared object file: No such file or directory
+```
+install libssl1.1
+```sh
+sudo apt install libssl1.1
 ```
 
 You can also run the MongoDB shell:
