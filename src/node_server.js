@@ -1,10 +1,28 @@
+
 const http = require('http');
 var https = require('https');
 const url = require('url');
 const fs = require('fs');
+const path = require('path');
+
+const userDir = path.resolve(__dirname, 'user');
+const userExampleDir = path.resolve(__dirname, 'user_example');
+
+if (!fs.existsSync(userDir)) {
+    fs.cpSync(userExampleDir, userDir, { recursive: true });
+    // Reload the program
+    if (require.main === module) {
+        // Clear require cache for all user modules
+        Object.keys(require.cache).forEach((key) => {
+            if (key.startsWith(userDir)) {
+                delete require.cache[key];
+            }
+        });
+    }
+}
+
 const { router } = require('./routing/Router');
 const config = require('./user/config/config');
-const path = require('path');
 const Builder = require('./building/Builder');
 const loadHttpsCertification = require('./certification/httpsLoad.js');
 var WebSocketServer = require('websocket').server;
