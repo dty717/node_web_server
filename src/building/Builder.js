@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('../user/config/config'); // Import the config file
-const HtmlBuilder = require('./HtmlBuilder');
-const htmlBuilder = new HtmlBuilder()
+const VariableBuilder = require('./VariableBuilder');
+const variableBuilder = new VariableBuilder()
 
+const htmlRegex = /<!--\s*const\((.*?)\)\s*-->([\s\S]*?)<!--\s*end\s*-->/g
+const jsRegex = /\/\*+\s*const\s*\((.*?)\)\s*\*\/([\s\S]*?)\/\*+\s*end\s*\*\//g
 class Builder {
     constructor(basePath) {
         this.basePath = basePath;
@@ -32,7 +34,8 @@ class Builder {
             const files = fs.readdirSync(dir);
             files.forEach((file) => {
                 const filePath = path.join(dir, file);
-                if(filePath.includes('\\user\\static')||filePath.includes('/user/static')){
+                if(filePath.includes('\\user\\static')||filePath.includes('/user/static')||
+                    filePath.includes('\\user\\middleware')||filePath.includes('/user/middleware')){
                     return;
                 }
                 if (fs.statSync(filePath).isDirectory()) {
@@ -42,7 +45,7 @@ class Builder {
                     let content = fs.readFileSync(filePath, 'utf-8');
 
                     // Process "const" placeholders
-                    content = content.replace(/<!--\s*const\((.*?)\)\s*-->([\s\S]*?)<!--\s*end\s*-->/g, (match, key, value) => {
+                    content = content.replace(htmlRegex, (match, key, value) => {
                         if (config[key]) {
                             return `<!-- const(${key}) -->${config[key]}<!-- end -->`;
                         } else {
@@ -50,7 +53,7 @@ class Builder {
                             // return `<!-- const(${key}) -->${value}<!-- end -->`;
                             return match;
                         }
-                    }).replace(/\/\*+\s*const\s*\((.*?)\)\s*\*\/([\s\S]*?)\/\*+\s*end\s*\*\//g, (match, key, value ) => {
+                    }).replace(jsRegex, (match, key, value ) => {
                         if (config[key]) {
                             return `/* const(${key}) */${config[key]}/* end */`;
                         } else {
@@ -64,7 +67,7 @@ class Builder {
                     fs.writeFileSync(configFilePath, updatedConfigContent, 'utf-8');
 
                     // Collect all "var" placeholders matches using match
-                    const result = htmlBuilder.collectVarPlaceholders(content, filePath)
+                    const result = variableBuilder.collectVarPlaceholders(content, filePath)
                     if(result.hasChanged){
                         content = result.content;
                         changeableHtmlFileList.push(filePath)
@@ -91,23 +94,31 @@ class Builder {
         // Process changeable HTML files
         changeableHtmlFileList.forEach((filePath) => {
             const relativePath = path.relative(path.resolve(this.basePath, "src"), filePath).replace(/\\/g, '/');
-            const moduleName = path.basename(filePath, '.html');
-            const routeName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
-            const routeLowerName = moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
+            const fileName = path.basename(filePath);
+            const modulePath = path.relative(path.join(this.basePath, "user"), filePath).replace(/\\/g, '/').replace(new RegExp(fileName+"$"),"")
+            const modulePathName = modulePath.replace(/\\/g,'/').replace(/\//g,'___')
+
+            const moduleName =  path.basename(filePath, '.html');
+            const routeName = modulePathName + moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+            const routeLowerName = modulePathName + moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
 
             imports.push(`const ${routeName} = require('./${relativePath.replace(/\.html$/, '')}');`);
             newClasses.push(`const ${routeLowerName} = new ${routeName}()`);
-            routes.push(`    routingMap.addRoute("/${moduleName}", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
-            routes.push(`    routingMap.addRoute("/${moduleName}.html", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
-            routes.push(`    routingMap.addRoute("/${moduleName}.js", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${modulePath + moduleName}", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${modulePath + moduleName}.html", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
+            routes.push(`    routingMap.addRoute("/${modulePath + moduleName}.js", wrapHtml_200_Response(${routeLowerName}.generateHtml.bind(${routeLowerName})));`);
         });
 
         // Process unchangeable HTML files
         unchangeableHtmlFileList.forEach((filePath) => {
+            const relativePath = path.relative(path.join(this.basePath, "user"), filePath).replace(/\\/g, '/');
+            const fileName = path.basename(filePath);
+            const modulePath = relativePath.replace(new RegExp(fileName+"$"),"")
+            const modulePathName = modulePath.replace(/\\/g,'/').replace(/\//g,'___')
+
             const absolutePath = filePath.replace(/\\/g, '/');
-            const moduleName = path.basename(filePath, '.html');
-            const routeName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
-            const routeLowerName = moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
+            const moduleName = modulePath + path.basename(filePath, '.html');
+            const routeLowerName = modulePathName + moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
 
             if (config.htmlLoadingFromFile) {
                 routes.push(`    routingMap.addRoute("/${moduleName}", fileToHtml_200_Response('${absolutePath}'));`);

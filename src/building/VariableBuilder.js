@@ -1,13 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
-class HtmlBuilder {
+const htmlVarRegex = /<!--\s*var\((.*?)\)\s*-->([\s\S]*?)<!--\s*end\s*-->/g
+const jsVarRegex = /\/\*+\s*var\s*\((.*?)\)\s*\*\/([\s\S]*?)\/\*+\s*end\s*\*\//g
+
+class VariableBuilder {
 
     collectVarPlaceholders(content, filePath) {
-        const htmlVarMatches = [...content.matchAll(/<!--\s*var\((.*?)\)\s*-->([\s\S]*?)<!--\s*end\s*-->/g)]
+        const htmlVarMatches = [...content.matchAll(htmlVarRegex)]
             .map(match => ({ match: match[0], key: match[1], value: match[2] }));
 
-        const jsVarMatches = [...content.matchAll(/\/\*+\s*var\s*\((.*?)\)\s*\*\/([\s\S]*?)\/\*+\s*end\s*\*\//g)]
+        const jsVarMatches = [...content.matchAll(jsVarRegex)]
             .map(match => ({ match: match[0], key: match[1], value: match[2] }));
 
         const varMatches = [...htmlVarMatches, ...jsVarMatches];
@@ -83,4 +86,4 @@ ${updatedProperties}    }
     }
 }
 
-module.exports = HtmlBuilder;
+module.exports = VariableBuilder;
