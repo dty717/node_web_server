@@ -204,7 +204,7 @@ security:
 Restart MongoDB to apply changes:
 
 ```sh
-sudo systemctl restart mongod
+sudo systemctl restart mongodb
 ```
 
 ### Test Authentication
