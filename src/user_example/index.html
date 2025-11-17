@@ -401,6 +401,9 @@
             modalIcon.textContent = type === 'success' ? '✓' : '✕';
             modalOverlay.classList.add('show');
 
+            modalOverlay.addEventListener('click', function handler(e) {
+                if (e.target === modalOverlay) modalOverlay.classList.remove('show');
+            });
             modalBtn.onclick = () => modalOverlay.classList.remove('show');
         }
 
