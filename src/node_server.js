@@ -4,8 +4,9 @@ var https = require('https');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const { user_path } = require('../globalConfig');
 
-const userDir = path.resolve(__dirname, 'user');
+const userDir = path.resolve(__dirname, user_path);
 const userExampleDir = path.resolve(__dirname, 'user_example');
 
 /**
@@ -44,20 +45,18 @@ function copyDirSyncRecursive(src, dest) {
     }
 }
 
-
 // --- How to use it in your code ---
-
-if (!fs.existsSync(userDir)) {
+if (!fs.existsSync(userDir) || fs.readdirSync(userDir).length === 0) {
     try {
         // Replace the single problematic line with the custom function call
         copyDirSyncRecursive(userExampleDir, userDir);
-        
-    } catch(e) {
+
+    } catch (e) {
         console.error("An error occurred during the recursive copy process:", e);
     }
-    
+
     console.log("userDir exists after operations:", fs.existsSync(userDir));
-    
+
     // Reload the program logic remains the same
     if (require.main === module) {
         // ... (rest of your cache-clearing logic) ...
@@ -70,7 +69,7 @@ if (!fs.existsSync(userDir)) {
 }
 
 const { router } = require('./routing/Router');
-const config = require('./user/config/config');
+const config = require('./' + user_path + '/config/config');
 const Builder = require('./building/Builder');
 const loadHttpsCertification = require('./certification/httpsLoad.js');
 var WebSocketServer = require('websocket').server;
@@ -81,11 +80,11 @@ router.setBasePath(basePath)
 const builder = new Builder(path.resolve(__dirname));
 builder.building()
 
-const { loadRoutingMap } = require('./user/RoutingMapLoad');
+const { loadRoutingMap } = require('./' + user_path + '/RoutingMapLoad');
 loadRoutingMap(router.routingMap)
 
-require("./user/main.js")
-require("./user/controller/mainRouter");
+require("./" + user_path + "/main.js")
+require("./" + user_path + "/controller/mainRouter");
 
 const server = http.createServer((req, res) => {
     // Routing

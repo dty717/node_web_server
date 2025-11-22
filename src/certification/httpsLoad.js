@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-const config = require('../user/config/config');
+const { user_path } = require('../../globalConfig');
+const config = require('../' + user_path + '/config/config');
 
 /**
- * Load HTTPS certification files based on user configuration.
+ * Load HTTPS certification files based on user_path configuration.
  * @param {Object} config - Configuration object containing paths for key and certificate.
  * @returns {Object} An object containing the key and certificate.
  */

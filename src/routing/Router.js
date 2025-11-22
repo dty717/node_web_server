@@ -2,7 +2,8 @@ const http = require('http');
 const url = require('url'); // Import the 'url' module for parsing
 const fs = require('fs');
 const path = require('path');
-const config = require('../user/config/config');
+const { user_path } = require('../../globalConfig');
+const config = require('../' + user_path + '/config/config');
 const RoutingMap = require('./RoutingMap');
 
 const mimeTypes = {
@@ -21,7 +22,7 @@ class Router {
     constructor() {
         this.routingMap = new RoutingMap()
     }
-    
+
     get(path, handler) {
         this.routingMap.deleteRoute(path);
         this.routingMap.addRoute(path + "_*_" + 'GET', handler)
@@ -61,14 +62,14 @@ class Router {
         if (pathname === '/favicon.ico') {
             const faviconPath = path.join(this.basePath, config.favicon.path); // Adjust the path as needed
             fs.readFile(faviconPath, (err, data) => {
-            if (err) {
-                res.statusCode = 500;
-                res.end('Error loading favicon');
-                return;
-            }
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'image/x-icon');
-            res.end(data);
+                if (err) {
+                    res.statusCode = 500;
+                    res.end('Error loading favicon');
+                    return;
+                }
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'image/x-icon');
+                res.end(data);
             });
             return;
         }
@@ -78,7 +79,7 @@ class Router {
         // }
 
         if (pathname.startsWith("/static")) {
-            const staticFolderPath = path.join(this.basePath, 'src', 'user', 'static');
+            const staticFolderPath = path.join(this.basePath, 'src', user_path, 'static');
             const staticFilePath = path.join(staticFolderPath, pathname.replace('/static', ''));
 
             // Ensure the resolved path is within the static folder

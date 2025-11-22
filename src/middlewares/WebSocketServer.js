@@ -2,8 +2,9 @@
 var https = require('https');
 var http = require('http');
 var fs = require('fs');
+const { user_path } = require('../../globalConfig');
 const loadHttpsCertification = require('../certification/httpsLoad');
-const config = require('../user/config/config');
+const config = require('../' + user_path + '/config/config');
 var WebSocketServer = require('websocket').server;
 
 // const httpsOptions = loadHttpsCertification();

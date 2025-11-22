@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const config = require('../user/config/config'); // Import the config file
+const { user_path } = require('../../globalConfig');
+
+const config = require('../' + user_path + '/config/config'); // Import the config file
 const VariableBuilder = require('./VariableBuilder');
 const variableBuilder = new VariableBuilder()
 
@@ -16,8 +18,8 @@ class Builder {
     }
     // Method to back up the config file
     backupConfigFile() {
-        const configFilePath = path.resolve(this.basePath, './user/config/config.js');
-        const backupFilePath = path.resolve(this.basePath, './user/config/config_bak.js');
+        const configFilePath = path.resolve(this.basePath, './' + user_path + '/config/config.js');
+        const backupFilePath = path.resolve(this.basePath, './' + user_path + '/config/config_bak.js');
         if (fs.existsSync(configFilePath)) {
             fs.copyFileSync(configFilePath, backupFilePath);
             console.log('Config file backed up to config_bak.js');
@@ -34,8 +36,8 @@ class Builder {
             const files = fs.readdirSync(dir);
             files.forEach((file) => {
                 const filePath = path.join(dir, file);
-                if(filePath.includes('\\user\\static')||filePath.includes('/user/static')||
-                    filePath.includes('\\user\\middleware')||filePath.includes('/user/middleware')){
+                if (filePath.includes('\\' + user_path + '\\static') || filePath.includes('/' + user_path + '/static') ||
+                    filePath.includes('\\' + user_path + '\\middleware') || filePath.includes('/' + user_path + '/middleware')) {
                     return;
                 }
                 if (fs.statSync(filePath).isDirectory()) {
@@ -53,7 +55,7 @@ class Builder {
                             // return `<!-- const(${key}) -->${value}<!-- end -->`;
                             return match;
                         }
-                    }).replace(jsRegex, (match, key, value ) => {
+                    }).replace(jsRegex, (match, key, value) => {
                         if (config[key]) {
                             return `/* const(${key}) */${config[key]}/* end */`;
                         } else {
@@ -62,16 +64,16 @@ class Builder {
                         }
                     });
                     // Rewrite the config file with the updated attributes
-                    const configFilePath = path.resolve(this.basePath, './user/config/config.js');
+                    const configFilePath = path.resolve(this.basePath, './' + user_path + '/config/config.js');
                     const updatedConfigContent = `module.exports = ${JSON.stringify(config, null, 4)};\n`;
                     fs.writeFileSync(configFilePath, updatedConfigContent, 'utf-8');
 
                     // Collect all "var" placeholders matches using match
                     const result = variableBuilder.collectVarPlaceholders(content, filePath)
-                    if(result.hasChanged){
+                    if (result.hasChanged) {
                         content = result.content;
                         changeableHtmlFileList.push(filePath)
-                    }else{
+                    } else {
                         unchangeableHtmlFileList.push(filePath);
                         const jsFilePath = filePath.replace(/\.html$/, '.js');
                         if (fs.existsSync(jsFilePath)) {
@@ -86,7 +88,7 @@ class Builder {
         searchHtmlFiles(this.basePath); // Start searching from the base path
         console.log(changeableHtmlFileList);
         // Rewrite /RoutingMapLoad.js based on changeableHtmlFileList
-        const routingMapLoadPath = path.resolve(this.basePath, "src", '../user/RoutingMapLoad.js');
+        const routingMapLoadPath = path.resolve(this.basePath, "src", '../' + user_path + '/RoutingMapLoad.js');
         const imports = [];
         const newClasses = [];
         const routes = [];
@@ -95,10 +97,10 @@ class Builder {
         changeableHtmlFileList.forEach((filePath) => {
             const relativePath = path.relative(path.resolve(this.basePath, "src"), filePath).replace(/\\/g, '/');
             const fileName = path.basename(filePath);
-            const modulePath = path.relative(path.join(this.basePath, "user"), filePath).replace(/\\/g, '/').replace(new RegExp(fileName+"$"),"")
-            const modulePathName = modulePath.replace(/\\/g,'/').replace(/\//g,'___')
+            const modulePath = path.relative(path.join(this.basePath, user_path), filePath).replace(/\\/g, '/').replace(new RegExp(fileName + "$"), "")
+            const modulePathName = modulePath.replace(/\\/g, '/').replace(/\//g, '___')
 
-            const moduleName =  path.basename(filePath, '.html');
+            const moduleName = path.basename(filePath, '.html');
             const routeName = modulePathName + moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
             const routeLowerName = modulePathName + moduleName.charAt(0).toLowerCase() + moduleName.slice(1);
 
@@ -111,10 +113,10 @@ class Builder {
 
         // Process unchangeable HTML files
         unchangeableHtmlFileList.forEach((filePath) => {
-            const relativePath = path.relative(path.join(this.basePath, "user"), filePath).replace(/\\/g, '/');
+            const relativePath = path.relative(path.join(this.basePath, user_path), filePath).replace(/\\/g, '/');
             const fileName = path.basename(filePath);
-            const modulePath = relativePath.replace(new RegExp(fileName+"$"),"")
-            const modulePathName = modulePath.replace(/\\/g,'/').replace(/\//g,'___')
+            const modulePath = relativePath.replace(new RegExp(fileName + "$"), "")
+            const modulePathName = modulePath.replace(/\\/g, '/').replace(/\//g, '___')
 
             const absolutePath = filePath.replace(/\\/g, '/');
             const moduleName = modulePath + path.basename(filePath, '.html');
