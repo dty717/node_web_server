@@ -60,7 +60,7 @@ class Router {
 
         // Handle specific cases like '/favicon.ico' by serving a file from a configured path
         if (pathname === '/favicon.ico') {
-            const faviconPath = path.join(this.basePath, config.favicon.path); // Adjust the path as needed
+            const faviconPath = path.join(this.basePath, 'src', user_path, config.favicon.path); // Adjust the path as needed
             fs.readFile(faviconPath, (err, data) => {
                 if (err) {
                     res.statusCode = 500;
