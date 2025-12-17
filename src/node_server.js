@@ -4,6 +4,7 @@ var https = require('https');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { user_path } = require('../globalConfig');
 
 const userDir = path.resolve(__dirname, user_path);
@@ -86,6 +87,31 @@ loadRoutingMap(router.routingMap)
 require("./" + user_path + "/main.js")
 require("./" + user_path + "/controller/mainRouter");
 
+
+function getTrueLanIP() {
+    const interfaces = os.networkInterfaces();
+
+    // Regex to exclude common VPN/Virtual interface prefixes
+    const excludeRegex = /^(tun|tap|utun|vboxnet|vmnet|wg|docker)/i;
+
+    for (const name of Object.keys(interfaces)) {
+        // Skip if the interface name matches our "virtual/vpn" blacklist
+        if (excludeRegex.test(name)) continue;
+
+        for (const net of interfaces[name]) {
+            // Look for IPv4, non-internal (not 127.0.0.1)
+            if (net.family === 'IPv4' && !net.internal) {
+                // Optional: Skip specific known VPN subnets if name filtering isn't enough
+                if (net.address.startsWith('172.20.')) continue;
+
+                return net.address;
+            }
+        }
+    }
+    return 'Not found';
+}
+const ip_address = getTrueLanIP();
+
 const server = http.createServer((req, res) => {
     // Routing
     router.handleRequest(req, res);
@@ -93,7 +119,7 @@ const server = http.createServer((req, res) => {
 
 // Start server
 server.listen(config.port, () => {
-    console.log(`Server running at http://localhost:${config.port}/`);
+    console.log(`Server running at http://${ip_address}:${config.port}/`);
 });
 
 const httpsOptions = loadHttpsCertification();
@@ -105,7 +131,7 @@ const httpsServer = https.createServer(httpsOptions, (req, res) => {
 
 // Start HTTPS server
 httpsServer.listen(config.httpsPort, () => {
-    console.log(`HTTPS Server running at https://localhost:${config.httpsPort}/`);
+    console.log(`HTTPS Server running at https://${ip_address}:${config.httpsPort}/`);
 });
 
 require('./middlewares/WebSocketServer.js');
