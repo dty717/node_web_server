@@ -20,9 +20,20 @@ const mimeTypes = {
 
 class Router {
     constructor() {
-        this.routingMap = new RoutingMap()
+        this.routingMap = new RoutingMap();
+        this.faviconData = "";
     }
-
+    loadFavicon() {
+        const faviconPath = path.join(this.basePath, 'src', user_path, config.favicon.path); // Adjust the path as needed
+        fs.readFile(faviconPath, (err, data) => {
+            if (err) {
+                //res.statusCode = 500;
+                //res.end('Error loading favicon');
+                return;
+            }
+            this.faviconData = data
+        });
+    }
     get(path, handler) {
         this.routingMap.deleteRoute(path);
         this.routingMap.addRoute(path + "_*_" + 'GET', handler)
@@ -48,7 +59,8 @@ class Router {
     }
 
     setBasePath(basePath) {
-        this.basePath = basePath
+        this.basePath = basePath;
+        this.loadFavicon();
     }
 
     getBasePath() {
@@ -60,17 +72,9 @@ class Router {
 
         // Handle specific cases like '/favicon.ico' by serving a file from a configured path
         if (pathname === '/favicon.ico') {
-            const faviconPath = path.join(this.basePath, 'src', user_path, config.favicon.path); // Adjust the path as needed
-            fs.readFile(faviconPath, (err, data) => {
-                if (err) {
-                    res.statusCode = 500;
-                    res.end('Error loading favicon');
-                    return;
-                }
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'image/x-icon');
-                res.end(data);
-            });
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'image/x-icon');
+            res.end(this.faviconData);
             return;
         }
 

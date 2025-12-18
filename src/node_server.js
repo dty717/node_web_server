@@ -92,7 +92,7 @@ function getTrueLanIP() {
     const interfaces = os.networkInterfaces();
 
     // Regex to exclude common VPN/Virtual interface prefixes
-    const excludeRegex = /^(tun|tap|utun|vboxnet|vmnet|wg|docker)/i;
+    const excludeRegex = /(tun|tap|utun|vboxnet|vmnet|wg|docker)/i;
 
     for (const name of Object.keys(interfaces)) {
         // Skip if the interface name matches our "virtual/vpn" blacklist
