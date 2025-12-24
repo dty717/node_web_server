@@ -20,13 +20,20 @@ class Builder {
     backupConfigFile() {
         const configFilePath = path.resolve(this.basePath, './' + user_path + '/config/config.js');
         const backupFilePath = path.resolve(this.basePath, './' + user_path + '/config/config_bak.js');
-        if (fs.existsSync(configFilePath)) {
-            fs.copyFileSync(configFilePath, backupFilePath);
-            console.log('Config file backed up to config_bak.js');
-        } else {
-            console.log('Config file does not exist, no backup created.');
+
+        try {
+            if (fs.existsSync(configFilePath)) {
+                fs.copyFileSync(configFilePath, backupFilePath);
+                console.log('Config file backed up to config_bak.js');
+            } else {
+                console.log('Config file does not exist, no backup created.');
+            }
+        } catch (error) {
+            // Logs the specific error message (e.g., EACCES for permissions or ENOSPC for no space)
+            console.error(`Failed to back up config file: ${error.message}`);
         }
     }
+
 
     // Method to process HTML files
     processHtmlFiles() {

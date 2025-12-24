@@ -176,6 +176,41 @@ function fileToHtml_200_Response(filePath) {
     };
 }
 
+function fileToHtml_200_Response(filePath) {
+    return function (req, res) {
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                res.statusCode = 500;
+                res.end('Error loading favicon');
+                return;
+            }
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/html');
+            res.end(data);
+        });
+        return;
+    };
+}
+
+/**
+ * Utility to process multipart body and execute a callback with the results
+ */
+function handlePostRequest(callback) {
+    return function (req, res) {
+        const chunks = [];
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('end', () => {
+            const body = Buffer.concat(chunks);
+            callback(body, req, res);
+        });
+        req.on('error', (err) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Request error' }));
+        });
+    }
+}
+
+
 const router = new Router();
 
-module.exports = { router, wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response, wrapJson_200_Response };
+module.exports = { router, wrapHtml_200_Response, wrapHtmlPlainText_200_Response, fileToHtml_200_Response, wrapJson_200_Response, handlePostRequest };
