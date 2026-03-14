@@ -42,6 +42,9 @@ class Builder {
         const searchHtmlFiles = (dir) => {
             const files = fs.readdirSync(dir);
             files.forEach((file) => {
+                if (file != user_path && (file == 'user' || file.startsWith('user_'))) {
+                    return
+                }
                 const filePath = path.join(dir, file);
                 if (filePath.includes('\\' + user_path + '\\static') || filePath.includes('/' + user_path + '/static') ||
                     filePath.includes('\\' + user_path + '\\middleware') || filePath.includes('/' + user_path + '/middleware')) {
