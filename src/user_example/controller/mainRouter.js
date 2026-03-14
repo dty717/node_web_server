@@ -62,8 +62,8 @@ router.post('/upload', (req, res) => {
 
             // determine static directory path based on router.basePath
             // router.basePath may be e.g. '/public' or '/'
-            const base = (router.basePath || '/').replace(/^\//, '');
-            const staticDir = path.join(base || '.', 'src/user/static/upload');
+            const base = (router.getWorkingPath() || '/').replace(/^\//, '');
+            const staticDir = path.join(base || '.', 'static/upload');
             try {
                 fs.mkdirSync(staticDir, { recursive: true });
                 const filePath = path.join(staticDir, filename);
@@ -72,7 +72,7 @@ router.post('/upload', (req, res) => {
                     field: dispositionMatch[1],
                     originalName: originalFilename,
                     savedName: filename,
-                    url: path.posix.join(router.basePath || '/', 'static/upload', filename)
+                    url: path.posix.join(base || '/', 'static/upload', filename).split(path.sep).join(path.posix.sep)
                 });
             } catch (err) {
                 console.error('Upload save error:', err);

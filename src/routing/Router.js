@@ -66,6 +66,11 @@ class Router {
     getBasePath() {
         return this.basePath;
     }
+
+    getWorkingPath() {
+        return this.basePath + "\\src\\" + user_path;
+    }
+
     handleRequest(req, res) {
         const parsedUrl = url.parse(req.url, true); // Parse the URL
         var pathname = parsedUrl.pathname; // Extract the pathname
