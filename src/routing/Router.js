@@ -68,7 +68,7 @@ class Router {
     }
 
     getWorkingPath() {
-        return this.basePath + "\\src\\" + user_path;
+        return this.basePath + "/src/" + user_path;
     }
 
     handleRequest(req, res) {
