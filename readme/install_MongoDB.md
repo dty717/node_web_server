@@ -144,6 +144,23 @@ install libssl1.1
 ```sh
 sudo apt install libssl1.1
 ```
+or install manually
+
+* For 64-bit (ARM64):
+```sh
+wget https://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.1_1.1.1w-0+deb11u5_arm64.deb
+```
+
+* For 32-bit (ARMHF):
+```sh
+wget https://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.1_1.1.1w-0+deb11u5_armhf.deb
+```
+
+Install the package:
+
+```sh
+sudo dpkg -i libssl1.1*.deb
+```
 
 You can also run the MongoDB shell:
 
