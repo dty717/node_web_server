@@ -69,3 +69,51 @@ The Pi Kiosk project is designed to turn a Raspberry Pi into a simple kiosk syst
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/geerlingguy/pi-kiosk/blob/master/LICENSE) file for details.
+
+
+
+This is a very common issue on the new Debian 13 "Trixie" update. 
+
+Because Trixie uses a modern display protocol called **Wayland** (specifically the Labwc compositor), old tutorials that tell you to use `xinput` or `99-calibration.conf` will completely fail. Under Wayland, the graphical display and the physical touch matrix rotate independently. 
+
+To fix this on the **Raspberry Pi Touch Display 2**, the most reliable method is to tell the hardware driver directly to rotate the touch axes to match your screen.
+
+Here is how to apply the fix:
+
+### **Step 1: Open the hardware configuration file**
+Open your terminal and run the following command to edit your config file:
+```bash
+sudo nano /boot/firmware/config.txt
+```
+
+### **Step 2: Add the touch rotation parameters**
+Scroll to the very bottom of the file (or look for the `[all]` section). You need to add a line that loads the official driver (`vc4-kms-dsi-ili9881-7inch`) along with specific commands to swap or invert the X and Y touch axes.
+
+Add **ONE** of the following lines based on how you rotated your screen:
+
+* **If you rotated 90° Clockwise (Standard Landscape/right):**
+    ```ini
+    dtoverlay=vc4-kms-dsi-ili9881-7inch,swapxy,invx
+    ```
+* **If you rotated 180° (Portrait Upside Down):**
+    ```ini
+    dtoverlay=vc4-kms-dsi-ili9881-7inch,invx,invy
+    ```
+* **If you rotated 270° Clockwise (Inverted Landscape/left):**
+    ```ini
+    dtoverlay=vc4-kms-dsi-ili9881-7inch,swapxy,invy
+    ```
+
+### **Step 3: Save and Reboot**
+1. Press `Ctrl + X` to exit the nano editor.
+2. Reboot your Raspberry Pi:
+   ```bash
+   sudo reboot
+   ```
+
+When the Pi boots back up, your touch input should perfectly match your display rotation. 
+
+*(Note: If you find that dragging your finger up moves the mouse down, simply reopen the file and swap `invx` for `invy`—or vice versa—to flip the axis back to normal).*
+
+---
+Would you like me to explain how to natively map touch inputs inside your Wayland configuration files if you ever decide to use a third-party monitor instead of the official Touch Display 2?

@@ -152,7 +152,7 @@ function loadRoutingMap(routingMap) {
 ${routes.join('\n')}
 }
 
-module.exports = { loadRoutingMap, wrapHtml_200_Response};
+module.exports = { loadRoutingMap};
 `;
 
         fs.writeFileSync(routingMapLoadPath, newRoutingMapContent, 'utf-8');
